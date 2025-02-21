@@ -1,28 +1,29 @@
-import express from "express";
-import cors from "cors";
-import mongoose from "mongoose";
-import dotenv from "dotenv";
+const express = require('express');
+const bodyParser = require('body-parser');
+const cors = require('cors');
+const connectDataBase = require('./config/database');
 
-dotenv.config();
+// Load environment variables from.env file
+require('dotenv').config();
+
+//connect to database
+connectDataBase();
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
-// Connect to MongoDB
-mongoose.connect(process.env.MONGO_URI, {
-    serverSelectionTimeoutMS: 5000
-})
-    .then(() => console.log("MongoDB Connected"))
-    .catch(err => console.error(err));
 
 // // Router
 // const homeRoutes = require('.routes/home');
+const productRoutes = require('./routes/product');
 
 // // Routes
 // app.use('.api/home', homeRoutes)
+app.use('/api/products', productRoutes);
 
 // test routes
 app.get('/', (req, res) => {
@@ -47,5 +48,5 @@ app.use((error, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
 

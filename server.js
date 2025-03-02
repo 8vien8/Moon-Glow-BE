@@ -20,10 +20,12 @@ app.use(bodyParser.json());
 // // Router
 // const homeRoutes = require('.routes/home');
 const productRoutes = require('./routes/product');
+const posterRoutes = require('./routes/poster');
 
 // // Routes
 // app.use('.api/home', homeRoutes)
 app.use('/api/products', productRoutes);
+app.use('/api/posters', posterRoutes);
 
 // test routes
 app.get('/', (req, res) => {

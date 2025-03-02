@@ -1,5 +1,5 @@
 const Product = require('../models/product')
-const deleteImages = require('../middlewares/deleteImage');
+const deleteImages = require('../middlewares/product/delete');
 
 exports.getAllProducts = async (req, res) => {
     try {
@@ -22,11 +22,13 @@ exports.getProductById = async (req, res) => {
 }
 
 exports.addNewProduct = async (req, res) => {
-    const imageUrls = req.files.map(file => file.path)
-    const product = new Product({ ...req.body, image: imageUrls })
     try {
+        const imageUrls = req.files.map(file => file.path)
+        const product = new Product({ ...req.body, image: imageUrls })
+
         // Check if image is empty
-        if (imageUrls.length === 0) return res.status(400).json({ message: 'Please upload an image' })
+        if (!req.files || req.files.length === 0)
+            return res.status(400).json({ message: 'Please upload at least one image' });
 
         await product.save()
         res.status(201).json(product)
@@ -61,10 +63,10 @@ exports.updateProduct = async (req, res) => {
         }
 
         // 2️⃣ Get the list of newly uploaded images
-        const newImageUrls = req.files.map(file => file.path);
+        const newImages = req.files.map(file => file.path);
 
-        // 3️⃣ Identify images to be deleted (old images not present in newImageUrls)
-        const imagesToDelete = product.image.filter(url => !newImageUrls.includes(url));
+        // 3️⃣ Identify images to be deleted (old images not present in newImages)
+        const imagesToDelete = product.image.filter(file => !newImages.includes(file));
 
         // 4️⃣ Delete old images from Cloudinary if there are changes
         if (imagesToDelete.length > 0) {
@@ -72,10 +74,13 @@ exports.updateProduct = async (req, res) => {
             await deleteImages(req, res, () => { });
         }
 
-        // 5️⃣ Update the database (keep old images that were not removed + add new ones)
-        product.image = [...product.image.filter(img => !imagesToDelete.includes(img)), ...newImageUrls];
+        // 5️⃣ Upload new images to Cloudinary
+        req.files = newImages.map(file => !product.image.includes(file));
 
-        // 6️⃣ Save the updated product with new images
+        // 6️⃣ Update the database (keep old images that were not removed + add new ones)
+        product.image = [...product.image.filter(img => !imagesToDelete.includes(img)), ...newImages];
+
+        // 7️⃣ Save the updated product with new images
         await product.save();
 
         res.status(200).json({ message: 'Product updated successfully', product });

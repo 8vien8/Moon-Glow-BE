@@ -57,6 +57,14 @@ exports.updateProduct = async (req, res) => {
         const product = await Product.findById(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });
 
+        const { name, price, category, description, status } = req.body;
+
+        if (name) product.name = name;
+        if (price) product.price = price;
+        if (category) product.category = category;
+        if (description) product.description = description;
+        if (status) product.status = status;
+
         // 1️⃣ Check if no new files were uploaded → Keep the existing images
         if (!req.files || req.files.length === 0) {
             return res.status(200).json({ message: 'No image changes, product updated successfully', product });

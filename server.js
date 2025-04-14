@@ -16,9 +16,11 @@ app.use(bodyParser.json());
 // Routes
 const productRoutes = require('./routes/product');
 const posterRoutes = require('./routes/poster');
+const authorRoutes = require('./routes/auth');
 
 app.use('/api/products', productRoutes);
 app.use('/api/posters', posterRoutes);
+app.use('/api/auth', authorRoutes);
 
 app.get('/', (req, res) => {
     res.send('Hello World');

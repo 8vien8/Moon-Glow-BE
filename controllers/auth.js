@@ -21,7 +21,7 @@ const register = async (req, res, next) => {
 
 const login = async (req, res, next) => {
     try {
-        const { email, password } = req.body
+        const { email, password } = req.body;
         const user = await User.findOne({ email });
         if (!user || !(await user.comparePassword(password))) {
             return res.status(401).json({ error: "Invalid credentials" });
@@ -30,14 +30,29 @@ const login = async (req, res, next) => {
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: "1h" }
+            { expiresIn: "15m" }
         );
 
-        res.json({ token, user: { id: user._id, username: user.name, role: user.role } });
+        // Gửi token qua HTTP-only cookie
+        res.cookie("token", token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === "production", // chỉ dùng HTTPS ở production
+            sameSite: "Strict", // hoặc "Lax"
+            maxAge: 15 * 60 * 1000 // 15 phút
+        });
+
+        res.json({
+            user: {
+                id: user._id,
+                username: user.name,
+                role: user.role
+            }
+        });
     } catch (error) {
         res.status(500).json({ error: "Login failed" });
         next(error);
     }
-}
+};
+
 
 module.exports = { register, login };

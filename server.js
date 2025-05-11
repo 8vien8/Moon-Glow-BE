@@ -11,8 +11,8 @@ const app = express();
 
 // Middleware
 const allowedOrigins = [
-    'http://localhost:5173', // local dev
-    'https://moon-glow.onrender.com' // frontend production
+    process.env.FRONT_END_URL, // local dev
+    process.env.CLIENT_URL // frontend production
 ];
 
 app.use(cors({ origin: allowedOrigins, credentials: true }));

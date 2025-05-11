@@ -10,7 +10,12 @@ connectDataBase();
 const app = express();
 
 // Middleware
-app.use(cors({ origin: process.env.CLIENT_URL, credentials: true }));
+const allowedOrigins = [
+    'http://localhost:5173', // local dev
+    'https://moon-glow.onrender.com' // frontend production
+];
+
+app.use(cors({ origin: allowedOrigins, credentials: true }));
 app.use(express.json());
 app.use(bodyParser.json());
 app.use(cookieParser());

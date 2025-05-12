@@ -55,5 +55,38 @@ const login = async (req, res, next) => {
     }
 };
 
+const logout = async (req, res) => {
+    try {
+        res.clearCookie("token");
+        res.status(200).json({ message: "Logged out successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Logout failed" });
+    }
+};
 
-module.exports = { register, login };
+const getMe = async (req, res) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ error: "Unauthorized" });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id).select("-password");
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+        res.json({
+            user: {
+                id: user._id,
+                username: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch user" });
+    }
+}
+
+module.exports = { register, login, logout, getMe };

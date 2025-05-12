@@ -34,20 +34,12 @@ const login = async (req, res, next) => {
             { expiresIn: "15m" }
         );
 
-        // Gửi token qua HTTP-only cookie
         res.cookie("token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production", // chỉ dùng HTTPS ở production
-            sameSite: "Strict", // hoặc "Lax"
-            maxAge: 60 * 60 * 1000 // 15 phút
+            secure: true,
+            sameSite: "None",
+            maxAge: 60 * 60 * 1000 // 1 hour
         });
-
-        // res.cookie("token", token, {
-        //     httpOnly: true,
-        //     secure: true,
-        //     sameSite: "None", // allow cross-origin frontend to receive cookie
-        //     maxAge: 15 * 60 * 1000
-        // });
 
         res.json({
             user: {

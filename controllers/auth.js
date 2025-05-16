@@ -31,14 +31,27 @@ const login = async (req, res, next) => {
         const token = jwt.sign(
             { id: user._id, role: user.role },
             process.env.JWT_SECRET,
-            { expiresIn: "15m" }
+            { expiresIn: "1h" }
         );
 
-        res.cookie("token", token, {
+        res.cookie("token", accessToken, {
             httpOnly: true,
             secure: true,
             sameSite: "None",
             maxAge: 60 * 60 * 1000 // 1 hour
+        });
+
+        const refreshToken = jwt.sign(
+            { id: user._id },
+            process.env.REFRESH_TOKEN_SECRET,
+            { expiresIn: "1d" }
+        );
+
+        res.cookie("refreshToken", refreshToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            maxAge: 1 * 24 * 60 * 60 * 1000 // 7 days
         });
 
         res.json({
@@ -48,6 +61,7 @@ const login = async (req, res, next) => {
                 role: user.role
             }
         });
+        res.status(200).json({ message: "Login successful" });
     } catch (error) {
         res.status(500).json({ error: "Login failed" });
         next(error);
@@ -92,4 +106,46 @@ const getMe = async (req, res) => {
     }
 }
 
-module.exports = { register, login, logout, getMe };
+const refreshToken = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+
+    if (!refreshToken) {
+        return res.status(401).json({ error: "No refresh token" });
+    }
+
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+        const user = await User.findById(decoded.id).select("-password");
+        if (!user) {
+            return res.status(404).json({ error: "User not found" });
+        }
+
+        const newAccessToken = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: "1h" }
+        );
+
+        res.cookie("token", newAccessToken, {
+            httpOnly: true,
+            secure: true,
+            sameSite: "None",
+            maxAge: 60 * 60 * 1000 // 1 hour
+        });
+
+        res.json({
+            user: {
+                id: user._id,
+                username: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+
+        res.status(200).json({ message: "Token refreshed successfully" });
+    } catch (error) {
+        res.status(500).json({ error: "Failed to refresh token" });
+    }
+}
+
+module.exports = { register, login, logout, getMe, refreshToken };

@@ -43,7 +43,7 @@ const login = async (req, res, next) => {
 
         const refreshToken = jwt.sign(
             { id: user._id },
-            process.env.REFRESH_TOKEN_SECRET,
+            process.env.JWT_REFRESH_SECRET,
             { expiresIn: "1d" }
         );
 
@@ -54,16 +54,18 @@ const login = async (req, res, next) => {
             maxAge: 1 * 24 * 60 * 60 * 1000 // 7 days
         });
 
-        res.json({
+        res.status(200).json({
+            message: "Login successful",
             user: {
                 id: user._id,
                 username: user.name,
                 role: user.role
             }
         });
-        res.status(200).json({ message: "Login successful" });
+
     } catch (error) {
         res.status(500).json({ error: "Login failed" });
+        next(error);
     }
 };
 

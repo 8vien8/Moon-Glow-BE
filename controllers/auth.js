@@ -65,7 +65,6 @@ const login = async (req, res, next) => {
 
     } catch (error) {
         res.status(500).json({ error: "Login failed" });
-        next(error);
     }
 };
 
@@ -134,7 +133,8 @@ const refreshToken = async (req, res) => {
             maxAge: 60 * 60 * 1000 // 1 hour
         });
 
-        res.json({
+        res.status(200).json({
+            message: "Token refreshed successfully",
             user: {
                 id: user._id,
                 username: user.name,
@@ -142,8 +142,6 @@ const refreshToken = async (req, res) => {
                 role: user.role
             }
         });
-
-        res.status(200).json({ message: "Token refreshed successfully" });
     } catch (error) {
         res.status(500).json({ error: "Failed to refresh token" });
     }

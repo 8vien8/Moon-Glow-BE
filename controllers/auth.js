@@ -143,7 +143,10 @@ const refreshToken = async (req, res) => {
             }
         });
     } catch (error) {
-        res.status(500).json({ error: "Failed to refresh token" });
+        if (error.name === 'TokenExpiredError') {
+            return res.status(401).json({ error: "Refresh token expired" });
+        }
+        res.status(401).json({ error: "Invalid refresh token" });
     }
 }
 
